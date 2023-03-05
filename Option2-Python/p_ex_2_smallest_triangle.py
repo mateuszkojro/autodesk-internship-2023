@@ -7,37 +7,28 @@ Write a program in Python which:
 What kind of error handling would you implement? How to validate that the triangle is valid? How to speed up the algorithm to avoid calculating all possible combinations?
 """
 import argparse
+from typing import Any, Tuple
 import numpy as np
-import matplotlib.pyplot as plt
-
-def calculate_triangle_area(points: np.ndarray) -> float:
-    return 0.5 * float(np.linalg.norm(np.cross(points[1] - points[0], points[2] - points[0])))
-
-def calculate_triangle_area_heron(points: np.ndarray) -> float:
-    a = np.linalg.norm(points[1] - points[0])
-    b = np.linalg.norm(points[2] - points[1])
-    c = np.linalg.norm(points[2] - points[0])
-    s = (a + b + c) / 2
-    return np.sqrt(s * (s - a) * (s - b) * (s - c))
+import heapq
+from tqdm import tqdm
 
 def calculate_triangle_perimeter(points: np.ndarray) -> float:
-    return float(np.linalg.norm(points[1] - points[0]) + np.linalg.norm(points[2] - points[1]) + np.linalg.norm(points[2] - points[0]))
-
-TRIANGLE_SIZE_FUNCTIONS = {
-    "area": calculate_triangle_area,
-    "area_heron": calculate_triangle_area_heron,
-    "perimeter": calculate_triangle_perimeter,
-}
+    return float(
+        np.linalg.norm(points[1] - points[0])
+        + np.linalg.norm(points[2] - points[1])
+        + np.linalg.norm(points[2] - points[0])
+    )
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Process some integers.")
     parser.add_argument("points", type=int, help="Number of points")
     parser.add_argument("--plot", action="store_true", help="Plot points")
-    parser.add_argument("--size-func", default="area", choices=TRIANGLE_SIZE_FUNCTIONS.keys(), help="Size function")
     return parser.parse_args()
+
 
 def generate_points(number_of_points: int) -> np.ndarray:
     return np.random.randint(-100, 100, size=(number_of_points, 2))
+
 
 def is_triangle_valid(points: np.ndarray) -> bool:
     assert len(points) == 3
@@ -66,15 +57,48 @@ def find_smallest_triangle_naive(points: np.ndarray, size_func) -> np.ndarray:
 def find_smallest_triangle(points: np.ndarray, size_func) -> np.ndarray:
     return find_smallest_triangle_naive(points, size_func)
 
+# TODO: Store only the smallest distance
+def smallest_triangle_perimeter(points):
+    points_distance = {}
+    for i in tqdm(range(len(points))):
+        heap = []
+        for j in range(len(points)):
+            if i == j:
+                continue
+            heapq.heappush(heap, (np.linalg.norm(points[i] - points[j]), j))
+        points_distance[i] = heap
+        
+    min_perimeter = np.inf
+    min_triangle = np.array([])
+    for i in tqdm(range(len(points))):
+        points_distance_copy = points_distance.copy()
+        distance, closest_to_i = heapq.heappop(points_distance_copy[i])
+        distance_third_point, third_point = heapq.heappop(points_distance_copy[closest_to_i])
+        while third_point == i:
+            distance_third_point, third_point = heapq.heappop(points_distance_copy[closest_to_i])
+        perimeter = calculate_triangle_perimeter(points[[i, closest_to_i, third_point]])
+        if perimeter < min_perimeter:
+            min_perimeter = perimeter
+            min_triangle = points[[i, closest_to_i, third_point]]
+            
+    return min_triangle
+        
 def main():
     args = parse_args()
     points = generate_points(args.points)
-    size_func = TRIANGLE_SIZE_FUNCTIONS[args.size_func]
-    smallest_triangle = find_smallest_triangle(points, size_func)
-    print(smallest_triangle, calculate_triangle_perimeter(smallest_triangle))
+    smallest_triangle_fast = smallest_triangle_perimeter(points)
+    smallest_triangle = find_smallest_triangle_naive(points, calculate_triangle_perimeter)
+    print("Smallest triangle (naive):", smallest_triangle)
+    print("Smallest triangle (fast):", smallest_triangle_fast)
     if args.plot:
+        try:
+            import matplotlib.pyplot as plt
+        except ImportError:
+            print("Please install matplotlib to plot points")
+            return
         plt.scatter(points[:, 0], points[:, 1])
         plt.scatter(smallest_triangle[:, 0], smallest_triangle[:, 1], c="red")
+        plt.scatter(smallest_triangle_fast[:, 0], smallest_triangle_fast[:, 1], c="green")
         plt.show()
 
 
