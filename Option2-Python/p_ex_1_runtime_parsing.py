@@ -15,36 +15,38 @@ import os
 import sys
 import pandas as pd
 import logging as log
+TIME_FILED = "length"
+PROGRAM_FIELD = "software"
+OPERATION_FIELD = "operation"
+REQUIRED_COLUMNS = [TIME_FILED, PROGRAM_FIELD, OPERATION_FIELD]
 
 def calculate_longest_operation(df: pd.DataFrame) -> dict:
     # 2. operation, which is taking the longest when summed from all entries
     pivot_table = pd.pivot_table(
-        df, columns=("operation"), values="length", aggfunc="sum"
+        df, columns=(OPERATION_FIELD), values=TIME_FILED, aggfunc="sum"
     ).T
-    pivot_table = pivot_table.sort_values(by="length", ascending=False)
+    pivot_table = pivot_table.sort_values(by=TIME_FILED, ascending=False)
     return pivot_table[:1].reset_index()
 
 
 def calculate_longest_operation_per_software(df: pd.DataFrame) -> dict:
     # 1. operation, which is taking the longest split by software
     pivot_table = pd.pivot_table(
-        df, columns=("software", "operation"), values="length", aggfunc="sum"
+        df, columns=(PROGRAM_FIELD, OPERATION_FIELD), values=TIME_FILED, aggfunc="sum"
     ).T
-    pivot_table = pivot_table.sort_values(by="length", ascending=False)
+    pivot_table = pivot_table.sort_values(by=TIME_FILED, ascending=False)
     return pivot_table.reset_index()
 
 
 def calculate_software_longest_to_shortest(df: pd.DataFrame) -> dict:
     # 3. list of softwares from the one taking the longest, to the one running the shortest.
     pivot_table = pd.pivot_table(
-        df, columns=("software"), values="length", aggfunc="sum"
+        df, columns=(PROGRAM_FIELD), values=TIME_FILED, aggfunc="sum"
     ).T
-    pivot_table = pivot_table.sort_values(by="length", ascending=False)
+    pivot_table = pivot_table.sort_values(by=TIME_FILED, ascending=False)
     return pivot_table.reset_index()
 
-
-REQUIRED_COLUMNS = ["length", "software", "operation"]
-AVALIABLE_TRANSFORMATIONS = {
+AVAILABLE_TRANSFORMATIONS = {
     "longest_operation": calculate_longest_operation,
     "longest_operation_per_software": calculate_longest_operation_per_software,
     "software_longest_to_shortest": calculate_software_longest_to_shortest,
@@ -66,9 +68,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--enabled-transformations",
         nargs="+",
-        choices=AVALIABLE_TRANSFORMATIONS.keys(),
+        choices=AVAILABLE_TRANSFORMATIONS.keys(),
         type=str,
-        default=AVALIABLE_TRANSFORMATIONS.keys(),
+        default=AVAILABLE_TRANSFORMATIONS.keys(),
         help="List of transformations to perform",
     )
     parser.add_argument("--debug", action="store_true", help="Enable debug logging")
@@ -92,7 +94,7 @@ def validate_file_exists(file_path: str):
 
 def validate_df_not_empty(df: pd.DataFrame):
     if df.empty:
-        raise ValueError(f"No data in file")
+        raise ValueError("No data in file")
 
 
 def validate_no_missing_values(df: pd.DataFrame):
@@ -104,9 +106,9 @@ def validate_no_missing_values(df: pd.DataFrame):
 
 
 def validate_no_negative_time_values(df: pd.DataFrame):
-    negative_values = df["length"] < 0
+    negative_values = df[TIME_FILED] < 0
     if negative_values.any():
-        raise ValueError(f"Negative values in length column")
+        raise ValueError("Negative values in length column")
 
 
 def report_error_and_exit(msg: str):
@@ -136,14 +138,14 @@ def main():
 
     try:
         operations_runtime_df = operations_runtime_df.astype(
-            {"length": float, "software": str, "operation": str}
+            {TIME_FILED: float, PROGRAM_FIELD: str, OPERATION_FIELD: str}
         )
     except ValueError as e:
         report_error_and_exit(f"Invalid entry: {e}")
 
     results = {}
     for transformation_name in args.enabled_transformations:
-        results[transformation_name] = AVALIABLE_TRANSFORMATIONS[transformation_name](
+        results[transformation_name] = AVAILABLE_TRANSFORMATIONS[transformation_name](
             operations_runtime_df
         )
 
