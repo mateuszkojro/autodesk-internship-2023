@@ -1,0 +1,9 @@
+A company selling luxury products prepares a marketing campaign to promote their brand new model of a golden watch.
+While selling the previous model they collected the following data about the customers.
+Age - the age of customer
+Salary - the estimated customer's salary value
+Purchased - information if given customer purchased the product or not, 1 - yes, 0 - no
+
+Deliver a solution in Python which leverages Machine Learning and the available data to help the company predict 
+which customers may be willing to buy their new watch, so that they can properly target their marketing efforts.
+The solution should answer the question if customer in given age who earns given salary will buy the product or not.
