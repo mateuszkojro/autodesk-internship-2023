@@ -41,16 +41,17 @@ bool IsSorted(Node *pRoot) {
 
     // "All values in the left subtree are less than or equal to the value of the
     // node [...]"
-    if (pRoot->pLeft != nullptr && NodeHasNoChildren(pRoot->pLeft) &&
-        pRoot->pLeft->value > pRoot->value) {
+    if (pRoot->pLeft != nullptr
+        && NodeHasNoChildren(pRoot->pLeft)
+        && pRoot->pLeft->value > pRoot->value) {
         return false;
     }
 
     // "[...] all values in the right subtree are greater than the value of the
     // node"
-    if (pRoot->pRight != nullptr &&
-        NodeHasNoChildren(pRoot->pRight) &&
-        pRoot->pRight->value <= pRoot->value) {
+    if (pRoot->pRight != nullptr
+        && NodeHasNoChildren(pRoot->pRight)
+        && pRoot->pRight->value <= pRoot->value) {
         return false;
     }
 
@@ -73,13 +74,6 @@ bool IsSorted(Node *pRoot) {
 
 using namespace std;
 
-void PrintTree(Node *pRoot) {
-    if (pRoot == nullptr)
-        return;
-    cout << pRoot->value << " ";
-    PrintTree(pRoot->pLeft);
-    PrintTree(pRoot->pRight);
-}
 
 int main() {
 
@@ -95,8 +89,7 @@ int main() {
         cout << "Tree is sorted" << endl;
     else
         cout << "Tree is not sorted" << endl;
-    PrintTree(pRoot);
-
+    
     delete pRoot;
     return 0;
 }
