@@ -29,8 +29,8 @@ double Distance(const Vector3d &a, const Vector3d &b, const Vector3d &p) {
     Vector3d ab = b - a;
     Vector3d ap = p - a;
 
-    // If `ap` and `ab` point in different directions (`ap` is "lagging" behind `ab`) (`ap * ab` < 0) or `ap` and `ab`
-    // are perpendicular (`ap * ab` = 0)
+    // If `ap` and `ab` point in different directions (`ap` is "lagging" behind `ab`) (`ap * ab` < 0) 
+    // or `ap` and `ab` are perpendicular (`ap * ab` = 0)
     // the shortest distance is just the distance between `a` and `p` so just `sqrt((p-a)**2)`
     if (ap.dot(ab) <= 0.0) {
         return ap.norm();
