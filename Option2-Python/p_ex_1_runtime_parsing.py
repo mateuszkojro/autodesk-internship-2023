@@ -15,10 +15,12 @@ import os
 import sys
 import pandas as pd
 import logging as log
+
 TIME_FILED = "length"
 PROGRAM_FIELD = "software"
 OPERATION_FIELD = "operation"
 REQUIRED_COLUMNS = [TIME_FILED, PROGRAM_FIELD, OPERATION_FIELD]
+
 
 def calculate_longest_operation(df: pd.DataFrame) -> dict:
     # 2. operation, which is taking the longest when summed from all entries
@@ -46,6 +48,7 @@ def calculate_software_longest_to_shortest(df: pd.DataFrame) -> dict:
     pivot_table = pivot_table.sort_values(by=TIME_FILED, ascending=False)
     return pivot_table.reset_index()
 
+
 AVAILABLE_TRANSFORMATIONS = {
     "longest_operation": calculate_longest_operation,
     "longest_operation_per_software": calculate_longest_operation_per_software,
@@ -57,7 +60,9 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Process some integers.")
     parser.add_argument("file", type=str, help="Path to json file")
     parser.add_argument(
-        "--strict", action="store_true", help="Enable strict mode (check if all values are present and if time is not negative)"
+        "--strict",
+        action="store_true",
+        help="Enable strict mode (check if all values are present and if time is not negative)",
     )
     parser.add_argument(
         "--output-format",
@@ -77,27 +82,27 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def setup_logging():
+def setup_logging() -> None:
     log.basicConfig(level=log.INFO, format="%(levelname)s %(message)s")
 
 
-def validate_required_columns_present(df: pd.DataFrame, required_columns: list):
+def validate_required_columns_present(df: pd.DataFrame, required_columns: list) -> None:
     for column in required_columns:
         if column not in df.columns:
             raise ValueError(f"Required column not pressent in file: {column}")
 
 
-def validate_file_exists(file_path: str):
+def validate_file_exists(file_path: str) -> None:
     if not os.path.isfile(file_path):
         raise FileNotFoundError(f"File not found: {file_path}")
 
 
-def validate_df_not_empty(df: pd.DataFrame):
+def validate_df_not_empty(df: pd.DataFrame) -> None:
     if df.empty:
         raise ValueError("No data in file")
 
 
-def validate_no_missing_values(df: pd.DataFrame):
+def validate_no_missing_values(df: pd.DataFrame) -> None:
     nan_values = df.isna().any()
     if nan_values.any():
         raise ValueError(
@@ -105,13 +110,13 @@ def validate_no_missing_values(df: pd.DataFrame):
         )
 
 
-def validate_no_negative_time_values(df: pd.DataFrame):
+def validate_no_negative_time_values(df: pd.DataFrame) -> None:
     negative_values = df[TIME_FILED] < 0
     if negative_values.any():
         raise ValueError("Negative values in length column")
 
 
-def report_error_and_exit(msg: str):
+def report_error_and_exit(msg: str) -> None:
     log.critical(msg)
     sys.exit(1)
 
