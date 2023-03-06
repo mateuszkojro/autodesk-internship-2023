@@ -10,7 +10,6 @@ import argparse
 from typing import Any, Tuple
 import numpy as np
 import heapq
-from tqdm import tqdm
 
 def calculate_triangle_perimeter(points: np.ndarray) -> float:
     return float(
@@ -57,10 +56,9 @@ def find_smallest_triangle_naive(points: np.ndarray, size_func) -> np.ndarray:
 def find_smallest_triangle(points: np.ndarray, size_func) -> np.ndarray:
     return find_smallest_triangle_naive(points, size_func)
 
-# TODO: Store only the smallest distance
-def smallest_triangle_perimeter(points):
+def smallest_triangle_improved(points):
     points_distance = {}
-    for i in tqdm(range(len(points))):
+    for i in range(len(points)):
         heap = []
         for j in range(len(points)):
             if i == j:
@@ -70,12 +68,16 @@ def smallest_triangle_perimeter(points):
         
     min_perimeter = np.inf
     min_triangle = np.array([])
-    for i in tqdm(range(len(points))):
+    for i in range(len(points)):
         points_distance_copy = points_distance.copy()
         distance, closest_to_i = heapq.heappop(points_distance_copy[i])
         distance_third_point, third_point = heapq.heappop(points_distance_copy[closest_to_i])
         while third_point == i:
             distance_third_point, third_point = heapq.heappop(points_distance_copy[closest_to_i])
+            
+        if not is_triangle_valid(points[[i, closest_to_i, third_point]]):
+            continue
+        
         perimeter = calculate_triangle_perimeter(points[[i, closest_to_i, third_point]])
         if perimeter < min_perimeter:
             min_perimeter = perimeter
@@ -86,7 +88,7 @@ def smallest_triangle_perimeter(points):
 def main():
     args = parse_args()
     points = generate_points(args.points)
-    smallest_triangle_fast = smallest_triangle_perimeter(points)
+    smallest_triangle_fast = smallest_triangle_improved(points)
     smallest_triangle = find_smallest_triangle_naive(points, calculate_triangle_perimeter)
     print("Smallest triangle (naive):", smallest_triangle)
     print("Smallest triangle (fast):", smallest_triangle_fast)
